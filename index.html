@@ -17,9 +17,15 @@
         /* --- ESTILOS DO CABEÇALHO --- */
         .cabecalho-principal {
             display: flex;
-            align-items: center; 
+            align-items: flex-start; /* Alinha o texto e o ícone ao topo */
             justify-content: space-between; 
             margin-bottom: 20px;
+        }
+
+        /* NOVO: Wrapper para o Título e a Data de Atualização */
+        .cabecalho-texto {
+            display: flex;
+            flex-direction: column;
         }
 
         .cabecalho-principal h1 {
@@ -27,13 +33,22 @@
             font-size: 2em;
             color: white; 
         }
-
-        #logo-cabecalho {
-            width: 80px; 
-            height: auto;
-            /* Usando um placeholder genérico pois não posso carregar arquivos locais */
-            content: url(https://imgur.com/a/gFF0HPn); 
+        
+        /* NOVO: Estilo para a Linha de Última Atualização */
+        .ultima-atualizacao {
+            color: #aaa; /* Cinza claro */
+            font-size: 0.85em; /* Tamanho pequeno */
+            margin-top: 5px; 
         }
+
+        /* NOVO: Estilização do ícone SVG */
+        #logo-cabecalho {
+            width: 50px; /* Reduzido o tamanho para parecer mais como um logo/ícone */
+            height: 50px;
+            color: #00bcd4; /* Cor do diamante */
+        }
+        
+        /* O código do Placehold foi removido, agora usamos um SVG inline */
 
         /* --- ESTILOS DA TABELA DE REFERÊNCIA E QUADRO MM --- */
         .info-referencia-container {
@@ -199,8 +214,19 @@
 <body>
 
     <div class="cabecalho-principal">
-        <h1>Tabela de Preços de Produtos</h1>
-        <img src="logo.png" id="logo-cabecalho" alt="Logo da Empresa">
+        <div class="cabecalho-texto">
+            <h1>Tabela de Preços de Produtos</h1>
+            <!-- NOVO: Linha de última atualização -->
+            <p class="ultima-atualizacao">Última atualização: 01/10/2025</p>
+        </div>
+        
+        <!-- Ícone SVG de Diamante -->
+        <svg id="logo-cabecalho" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L6 8L12 22L18 8L12 2Z" fill="currentColor"/>
+            <path d="M12 2L18 8L12 22L6 8L12 2Z" fill-opacity="0.3"/>
+            <path d="M12 2L6 8L18 8L12 2Z" fill="white" fill-opacity="0.5"/>
+            <path d="M12 22L18 8L6 8L12 22Z" fill-opacity="0.7"/>
+        </svg>
     </div>
     
     <!-- QUADRO DE INFORMAÇÕES E FERRAMENTA DE BUSCA MM -->
@@ -979,3 +1005,4 @@
 
 </body>
 </html>
+
