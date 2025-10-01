@@ -265,12 +265,14 @@
 
             /* Estiliza cada linha como um "cartão" com margem entre eles */
             #tabelaPrecos tr {
-                margin-bottom: 15px;
+                margin-bottom: 13px;
                 border: 1px solid #ccc; 
                 border-radius: 8px;
                 background-color: white;
                 box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                padding: 10px;
+                padding: 8px;
+                /* Adição de box-sizing para evitar que o padding e a borda causem estouro */
+                box-sizing: border-box;
             }
 
             /* Estiliza a célula (td) para mostrar a label do dado */
@@ -278,9 +280,11 @@
                 padding: 10px 10px; 
                 text-align: right; /* Alinha o valor à direita */
                 border: none;
-                font-size: 14px;
+                font-size:10px;
                 position: relative;
                 border-bottom: 1px solid #eee; /* Separador fino entre campos */
+                /* Adição de box-sizing para evitar que o padding e a borda causem estouro */
+                box-sizing: border-box;
             }
 
             #tabelaPrecos td:last-child {
@@ -294,6 +298,11 @@
                 font-weight: bold;
                 color: #4a4a4a; /* Cor escura para o rótulo */
                 margin-right: 10px;
+                /* Garante que o rótulo não quebre o layout */
+                max-width: 60%; 
+                white-space: nowrap; 
+                overflow: hidden; 
+                text-overflow: ellipsis; 
             }
         }
     </style>
@@ -303,14 +312,11 @@
     <div class="cabecalho-principal">
         <div class="cabecalho-texto">
             <h1>Tabela de Preços de Produtos</h1>
-            <!-- Linha de última atualização -->
             <p class="ultima-atualizacao">Última atualização: 01/10/2025</p>
             
-            <!-- Linha de Aviso de Destaque -->
             <span class="aviso-destaque">Valores sujeitos a alteração</span>
         </div>
         
-        <!-- LINK e IMAGEM NO LOCAL DO LOGO -->
         <a href="https://imgur.com/a/gFF0HPn" target="_blank" title="Ver Álbum de Referência">
             <img 
                 id="logo-cabecalho" 
@@ -321,7 +327,6 @@
         </a>
     </div>
     
-    <!-- QUADRO DE INFORMAÇÕES E FERRAMENTA DE BUSCA MM -->
     <div class="info-referencia-container">
         <h2>Informações e Custos Adicionais</h2>
         
@@ -342,7 +347,6 @@
             </tbody>
         </table>
 
-        <!-- QUADRO DE PESQUISA MM POR PREÇO BASE -->
         <div id="mm-price-finder" class="mm-search-box">
             <h3>Buscar Preço Base por Largura (MM)</h3>
             <div class="input-group">
@@ -358,10 +362,8 @@
             </div>
             <p class="nota-mm">O valor exibido é o preço unitário base mais comum para a largura pesquisada, sem pedras.</p>
         </div>
-        <!-- FIM DO QUADRO MM -->
-    </div>
+        </div>
     
-    <!-- CONTROLES DE FILTRO -->
     <div class="controles-filtro">
         <input 
             type="text" 
@@ -371,11 +373,9 @@
         
         <select id="filtroLargura">
             <option value="">Todas as Larguras</option>
-            <!-- Opções preenchidas via JavaScript -->
-        </select>
+            </select>
     </div>
 
-    <!-- TABELA PRINCIPAL DE DADOS -->
     <table id="tabelaPrecos">
         <thead>
             <tr>
