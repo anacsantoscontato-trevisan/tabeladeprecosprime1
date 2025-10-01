@@ -52,8 +52,8 @@
 
         /* Estilização do ícone/imagem - AJUSTADO: TAMANHO GRANDE (100PX) E SEM BORDA */
         #logo-cabecalho {
-            width: 140px; /* Aumentado para 100px */
-            height: 140px; /* Aumentado para 100px */
+            width: 100px; /* Aumentado para 100px */
+            height: 100px; /* Aumentado para 100px */
             border-radius: 4px; 
             object-fit: contain; 
             border: none; /* Sem borda */
@@ -62,6 +62,24 @@
         
         #logo-cabecalho:hover {
             transform: scale(1.05); /* Efeito ao passar o mouse */
+        }
+        
+        /* Otimização do Cabeçalho para Mobile */
+        @media (max-width: 600px) {
+            .cabecalho-principal {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            #logo-cabecalho {
+                margin-top: 15px;
+            }
+            .cabecalho-texto {
+                align-items: center;
+            }
+            .cabecalho-principal h1 {
+                font-size: 1.8em;
+            }
         }
 
         /* --- ESTILOS DA TABELA DE REFERÊNCIA E QUADRO MM --- */
@@ -118,6 +136,8 @@
             display: flex;
             gap: 10px;
             align-items: center;
+            /* Flex-wrap para mobile */
+            flex-wrap: wrap; 
         }
 
         #inputLarguraMM {
@@ -128,6 +148,7 @@
             background-color: white;
             color: black;
             font-size: 16px;
+            min-width: 150px; /* Garante que o input não fique muito estreito */
         }
 
         .resultado-display {
@@ -139,6 +160,8 @@
             color: white;
             font-weight: bold;
             border-radius: 4px;
+            /* Ocupa a largura total em mobile */
+            flex-grow: 1; 
         }
         
         /* Estilos dinâmicos para o resultado */
@@ -161,7 +184,7 @@
             display: flex;
             gap: 15px;
             margin-bottom: 20px;
-            /* Responsividade para telas menores */
+            /* Responsividade padrão: coluna em mobile */
             flex-direction: column; 
         }
         
@@ -194,13 +217,13 @@
             outline: none;
         }
 
-        /* Tabela Principal */
+        /* Tabela Principal (Desktop View) */
         #tabelaPrecos {
             border-collapse: collapse; 
             width: 100%;
             box-shadow: 0 4px 8px rgba(255,255,255,0.1);
             background-color: white;
-            overflow-x: auto; /* Garante que a tabela não cause scroll horizontal no corpo */
+            overflow-x: auto; 
         }
 
         #tabelaPrecos th, #tabelaPrecos td {
@@ -208,7 +231,7 @@
             text-align: left;
             border-bottom: 1px solid #ddd;
             color: black; 
-            white-space: nowrap; /* Impede que o texto quebre em colunas estreitas */
+            white-space: nowrap; 
         }
 
         #tabelaPrecos thead tr {
@@ -222,6 +245,56 @@
 
         #tabelaPrecos tbody tr:hover {
             background-color: #e2e2e2;
+        }
+        
+        /* ======================================================= */
+        /* RESPONSIVIDADE ESPECÍFICA PARA DISPOSITIVOS MÓVEIS */
+        /* Transforma a tabela em "cartões" de dados (até 767px) */
+        /* ======================================================= */
+        @media screen and (max-width: 767px) {
+            /* Esconde o cabeçalho da tabela */
+            #tabelaPrecos thead {
+                display: none;
+            }
+
+            /* Transforma a linha da tabela (tr) em um bloco/cartão */
+            #tabelaPrecos, #tabelaPrecos tbody, #tabelaPrecos tr, #tabelaPrecos td {
+                display: block;
+                width: 100%;
+            }
+
+            /* Estiliza cada linha como um "cartão" com margem entre eles */
+            #tabelaPrecos tr {
+                margin-bottom: 15px;
+                border: 1px solid #ccc; 
+                border-radius: 8px;
+                background-color: white;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                padding: 10px;
+            }
+
+            /* Estiliza a célula (td) para mostrar a label do dado */
+            #tabelaPrecos td {
+                padding: 10px 10px; 
+                text-align: right; /* Alinha o valor à direita */
+                border: none;
+                font-size: 14px;
+                position: relative;
+                border-bottom: 1px solid #eee; /* Separador fino entre campos */
+            }
+
+            #tabelaPrecos td:last-child {
+                border-bottom: none; /* Remove o separador da última célula */
+            }
+
+            /* Insere o rótulo da coluna (data-label) antes do conteúdo do td */
+            #tabelaPrecos td::before {
+                content: attr(data-label);
+                float: left;
+                font-weight: bold;
+                color: #4a4a4a; /* Cor escura para o rótulo */
+                margin-right: 10px;
+            }
         }
     </style>
 </head>
@@ -237,7 +310,7 @@
             <span class="aviso-destaque">Valores sujeitos a alteração</span>
         </div>
         
-        <!-- LINK e IMAGEM NO LOCAL DO LOGO (SRC CORRIGIDO) -->
+        <!-- LINK e IMAGEM NO LOCAL DO LOGO -->
         <a href="https://imgur.com/a/gFF0HPn" target="_blank" title="Ver Álbum de Referência">
             <img 
                 id="logo-cabecalho" 
@@ -410,12 +483,13 @@
                 const linha = document.createElement('tr');
                 
                 // As chaves são as mesmas do seu JSON/Array
+                // ADIÇÃO DOS ATRIBUTOS data-label PARA RESPONSIVIDADE MOBILE
                 linha.innerHTML = `
-                    <td>${item.MODELO}</td>
-                    <td>${item.DESCRICAO}</td>
-                    <td>${item['LARGURA (mm)']}</td>
-                    <td>${item['PRECO VENDA UNIT']}</td>
-                    <td>${item['COM PEDRA']}</td>
+                    <td data-label="Modelo:">${item.MODELO}</td>
+                    <td data-label="Descrição:">${item.DESCRICAO}</td>
+                    <td data-label="Largura:">${item['LARGURA (mm)']}</td>
+                    <td data-label="Preço Unitário:">${item['PRECO VENDA UNIT']}</td>
+                    <td data-label="Preço c/ Pedra:">${item['COM PEDRA']}</td>
                 `;
                 corpoTabela.appendChild(linha);
             });
