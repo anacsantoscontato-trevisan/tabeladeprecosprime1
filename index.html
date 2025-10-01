@@ -43,7 +43,7 @@
 
         /* Estilo para o Aviso de Destaque */
         .aviso-destaque {
-            color: #f6ff00; /* Cor de destaque (Azul Ciano) */
+            color: #f6ff00; /* Cor de destaque (Amarelo) */
             font-size: 1em;
             font-weight: bold;
             margin-top: 8px; /* Espaçamento abaixo da data */
@@ -117,7 +117,7 @@
             background-color: #2c2c2c;
         }
 
-        /* --- ESTILOS PARA O QUADRO DE PESQUISA MM --- */
+        /* --- ESTILOS PARA O QUADRO DE PESQUISA/CALCULADORA MM --- */
         .mm-search-box {
             border: 1px solid #333;
             padding: 15px;
@@ -139,8 +139,9 @@
             /* Flex-wrap para mobile */
             flex-wrap: wrap; 
         }
-
-        #inputLarguraMM {
+        
+        /* Estilo comum para inputs de Largura e Pedras */
+        #inputLarguraMM, #inputPedras {
             flex-grow: 1;
             padding: 10px;
             border-radius: 4px;
@@ -148,8 +149,22 @@
             background-color: white;
             color: black;
             font-size: 16px;
-            min-width: 150px; /* Garante que o input não fique muito estreito */
+            min-width: 120px; 
+            box-sizing: border-box; /* Garante que padding não altere a largura total */
         }
+        
+        #botaoCalcularPreco {
+            padding: 10px 15px; 
+            background-color: #ff4d4d; /* Vermelho/Destaque */
+            color: white; 
+            border: none; 
+            border-radius: 4px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            flex-grow: 1;
+            min-width: 150px;
+        }
+
 
         .resultado-display {
             flex-shrink: 0;
@@ -348,19 +363,34 @@
         </table>
 
         <div id="mm-price-finder" class="mm-search-box">
-            <h3>Buscar Preço Base por Largura (MM)</h3>
-            <div class="input-group">
+            <h3>Buscar e Calcular Preço (MM e Pedras)</h3>
+            <div class="input-group" style="margin-bottom: 10px;">
                 <input 
                     type="text" 
                     id="inputLarguraMM" 
-                    placeholder="Ex: 3MM, 4MM"
+                    placeholder="Largura (Ex: 3MM)"
                     maxlength="5"
                 >
+                <input 
+                    type="number" 
+                    id="inputPedras" 
+                    placeholder="Pedras (Qtd)"
+                    min="0"
+                    value="0"
+                >
+            </div>
+            
+            <div class="input-group">
+                <button 
+                    id="botaoCalcularPreco" 
+                >
+                    Calcular Preço Total
+                </button>
                 <div id="resultadoPrecoMM" class="resultado-display">
-                    Aguardando Busca...
+                    Aguardando Cálculo...
                 </div>
             </div>
-            <p class="nota-mm">O valor exibido é o preço unitário base mais comum para a largura pesquisada, sem pedras.</p>
+            <p class="nota-mm">O preço base de cada MM é o valor unitário mais comum encontrado na tabela. Custo por pedra: R$ 2,50.</p>
         </div>
         </div>
     
@@ -382,6 +412,7 @@
                 <th>Modelo</th>
                 <th>Descrição</th>
                 <th>Largura (mm)</th>
+                <th>Pedras</th>
                 <th>Preço Unitário</th>
                 <th>Preço c/ Pedra</th>
             </tr>
@@ -474,20 +505,20 @@
             corpoTabela.innerHTML = '';
 
             if (dados.length === 0) {
-                // Colspan de 5 para as 5 colunas do cabeçalho
-                corpoTabela.innerHTML = '<tr><td colspan="5" style="text-align: center;">Nenhum item corresponde à sua pesquisa.</td></tr>';
+                // COLSPAN AJUSTADO PARA 6 (5 colunas originais + 1 Pedras)
+                corpoTabela.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum item corresponde à sua pesquisa.</td></tr>';
                 return;
             }
 
             dados.forEach(item => {
                 const linha = document.createElement('tr');
                 
-                // As chaves são as mesmas do seu JSON/Array
-                // ADIÇÃO DOS ATRIBUTOS data-label PARA RESPONSIVIDADE MOBILE
+                // ADIÇÃO DA CÉLULA PEDRAS COM data-label
                 linha.innerHTML = `
                     <td data-label="Modelo:">${item.MODELO}</td>
                     <td data-label="Descrição:">${item.DESCRICAO}</td>
                     <td data-label="Largura:">${item['LARGURA (mm)']}</td>
+                    <td data-label="Pedras:">${item.PEDRAS || '-'}</td>
                     <td data-label="Preço Unitário:">${item['PRECO VENDA UNIT']}</td>
                     <td data-label="Preço c/ Pedra:">${item['COM PEDRA']}</td>
                 `;
@@ -534,42 +565,83 @@
             filtroLargura.addEventListener('change', filtrarTabela);
         }
 
-        // Inicializa e gerencia a busca de MM por preço
+        // FUNÇÃO CALCULADORA: Inicializa e gerencia o cálculo de preço por MM e Pedras
         function initMmPriceFinder() {
-            const input = document.getElementById('inputLarguraMM');
+            const inputLargura = document.getElementById('inputLarguraMM');
+            const inputPedras = document.getElementById('inputPedras');
             const resultado = document.getElementById('resultadoPrecoMM');
+            const botaoCalcular = document.getElementById('botaoCalcularPreco');
             
-            // Define o estado inicial do display de resultado
-            resultado.textContent = 'Aguardando Busca...';
-            resultado.className = 'resultado-display'; // Remove classes de sucesso/erro
+            // Variável constante para o custo por pedra (baseado na tabela de referência)
+            const CUSTO_POR_PEDRA = 2.50; 
 
-            // Listener para buscar o preço ao digitar
-            input.addEventListener('input', () => {
-                // Normaliza o input para comparação (ex: "3mm" -> "3MM")
-                let larguraBusca = input.value.toUpperCase().trim();
+            // Define o estado inicial do display de resultado
+            resultado.textContent = 'Aguardando Cálculo...';
+            resultado.className = 'resultado-display'; 
+
+            // Função de cálculo principal
+            function calcularPreco() {
+                // 1. Normaliza e busca a largura
+                let larguraBusca = inputLargura.value.toUpperCase().trim();
                 
                 // Tenta corrigir formatos comuns, como "3" para "3MM"
-                if (!larguraBusca.endsWith('MM') && !isNaN(parseFloat(larguraBusca.replace(',', '.')))) {
+                if (larguraBusca.length > 0 && !larguraBusca.endsWith('MM') && !isNaN(parseFloat(larguraBusca.replace(',', '.')))) {
                     larguraBusca += 'MM';
                 }
-
-                // Limpa o resultado se o campo estiver vazio
-                if (input.value.trim().length === 0) {
-                    resultado.textContent = 'Aguardando Busca...';
-                    resultado.className = 'resultado-display';
-                    return;
+                
+                // 2. Valida a entrada de largura
+                if (!larguraBusca || larguraBusca === 'MM') {
+                     resultado.textContent = 'Informe a Largura (Ex: 4MM)';
+                     resultado.className = 'resultado-display resultado-error';
+                     return;
                 }
 
-                // Procura no mapeamento criado
-                const precoEncontrado = precoBasePorLargura[larguraBusca];
-
-                if (precoEncontrado) {
-                    resultado.textContent = `Base: ${precoEncontrado}`;
-                    resultado.className = 'resultado-display resultado-success';
-                } else {
+                // 3. Obtém o preço base
+                const precoBaseTexto = precoBasePorLargura[larguraBusca];
+                
+                if (!precoBaseTexto) {
                     resultado.textContent = `${larguraBusca} não tem preço base.`;
                     resultado.className = 'resultado-display resultado-error';
+                    return;
                 }
+                
+                // 4. Converte o preço base (R$ 42,90 -> 42.90)
+                const precoBaseNumerico = parseFloat(precoBaseTexto.replace('R$', '').replace(',', '.').trim());
+                
+                // 5. Obtém a quantidade de pedras
+                const qtdPedras = parseInt(inputPedras.value) || 0;
+                
+                // 6. Realiza o cálculo
+                const custoPedras = qtdPedras * CUSTO_POR_PEDRA;
+                const precoTotal = precoBaseNumerico + custoPedras;
+
+                // 7. Exibe o resultado formatado (ex: R$ 45,40)
+                resultado.textContent = `TOTAL: R$ ${precoTotal.toFixed(2).replace('.', ',')}`;
+                resultado.className = 'resultado-display resultado-success';
+            }
+
+            // O input de largura (MM)
+            inputLargura.addEventListener('input', () => {
+                 // Limpa o resultado ao digitar para incentivar o clique no botão
+                 resultado.textContent = 'Clique em Calcular...';
+                 resultado.className = 'resultado-display'; 
+            });
+            
+            // O input de Pedras
+            inputPedras.addEventListener('input', () => {
+                 resultado.textContent = 'Clique em Calcular...';
+                 resultado.className = 'resultado-display'; 
+            });
+
+            // Listener para o botão de calcular
+            botaoCalcular.addEventListener('click', calcularPreco);
+            
+            // Opcional: Adiciona tecla Enter para calcular
+            inputLargura.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') calcularPreco();
+            });
+            inputPedras.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') calcularPreco();
             });
         }
 
@@ -593,6 +665,7 @@
                     item.MODELO + " " + 
                     item.DESCRICAO + " " + 
                     item['LARGURA (mm)'] + " " +
+                    item.PEDRAS + " " + // Adicionado Pedras na busca de texto
                     item['PRECO VENDA UNIT'] + " " +
                     item['COM PEDRA']
                 ).toUpperCase();
@@ -611,7 +684,7 @@
             // 1. Preenche o dropdown de Largura e o mapeamento de preço base
             preencherFiltroLarguraEPrecoBase(); 
             
-            // 2. Inicializa o quadro de busca por MM
+            // 2. Inicializa o quadro de busca/cálculo por MM
             initMmPriceFinder();
 
             // 3. Renderiza a tabela completa ao carregar
